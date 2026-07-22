@@ -6,13 +6,13 @@ export function createAdminClient() {
 
   if (!supabaseUrl) {
     throw new Error(
-      "A variável NEXT_PUBLIC_SUPABASE_URL não foi configurada."
+      "NEXT_PUBLIC_SUPABASE_URL não foi configurada."
     );
   }
 
   if (!supabaseSecretKey) {
     throw new Error(
-      "A variável SUPABASE_SECRET_KEY não foi configurada."
+      "SUPABASE_SECRET_KEY não foi configurada."
     );
   }
 
@@ -20,7 +20,6 @@ export function createAdminClient() {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
-      detectSessionInUrl: false,
     },
   });
 }
