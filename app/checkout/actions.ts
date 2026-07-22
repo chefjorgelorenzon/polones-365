@@ -281,67 +281,94 @@ const customerPhone = normalizeDigits(
   let checkout;
 
   try {
-    checkout = await createAsaasCheckout({
-      billingTypes: ["CREDIT_CARD"],
-      chargeTypes: ["RECURRENT"],
-      minutesToExpire: 60,
+   checkout = await createAsaasCheckout({
+  billingTypes: ["CREDIT_CARD"],
+  chargeTypes: ["RECURRENT"],
+  minutesToExpire: 60,
 
-      externalReference,
+  externalReference,
 
-      callback: {
-        successUrl: `${appUrl}/checkout/sucesso`,
-        cancelUrl: `${appUrl}/checkout?plano=${plan.id}&status=cancelado`,
-        expiredUrl: `${appUrl}/checkout?plano=${plan.id}&status=expirado`,
-      },
+  callback: {
+    successUrl: `${appUrl}/checkout/sucesso`,
+    cancelUrl: `${appUrl}/checkout?plano=${plan.id}&status=cancelado`,
+    expiredUrl: `${appUrl}/checkout?plano=${plan.id}&status=expirado`,
+  },
 
-      items: [
-        {
-          externalReference: plan.id,
-          name: plan.name,
-          description: plan.description,
-          quantity: 1,
-          value: plan.price,
-        },
-      ],
+  items: [
+    {
+      externalReference: plan.id,
+      name: plan.name,
+      description: plan.description,
+      quantity: 1,
+      value: plan.price,
+    },
+  ],
 
-      customerData: {
-        name: customerName,
-        email: customerEmail,
-        cpfCnpj: customerCpf,
+  customerData: {
+    name: customerName,
+    email: customerEmail,
+    cpfCnpj: customerCpf,
 
-        phone:
-          customerPhone.length >= 10
-            ? customerPhone
-            : undefined,
+    phone:
+      customerPhone.length >= 10
+        ? customerPhone
+        : undefined,
 
-        postalCode: customerPostalCode,
-        address: customerAddress,
-        addressNumber: customerAddressNumber,
-        province: customerProvince,
-      },
+    postalCode: customerPostalCode,
+    address: customerAddress,
+    addressNumber: customerAddressNumber,
+    province: customerProvince,
+  },
 
-      subscription: {
-        cycle: plan.billingCycle,
-        nextDueDate: getTodayInBrazil(),
-      },
-    });
-  } catch (error) {
-    console.error("Erro ao criar checkout Asaas:", error);
+  subscription: {
+    cycle: plan.billingCycle,
+    nextDueDate: getTodayInBrazil(),
+  },
+});
+} catch (error) {
+  console.error("Erro ao criar checkout Asaas:", error);
 
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Não foi possível iniciar o pagamento.";
+  const message =
+    error instanceof Error
+      ? error.message
+      : "Não foi possível iniciar o pagamento.";
 
-    redirectToCheckoutError(plan.id, message);
-  }
+  redirectToCheckoutError(plan.id, message);
+}
 
-  if (!checkout.link) {
-    redirectToCheckoutError(
-      plan.id,
-      "O Asaas não retornou o endereço do checkout.",
-    );
-  }
+if (!checkout.link) {
+  redirectToCheckoutError(
+    plan.id,
+    "O Asaas não retornou o endereço do checkout.",
+  );
+}
 
-  redirect(checkout.link);
+const { error: subscriptionError } = await supabase
+  .from("subscriptions")
+  .insert({
+    user_id: user.id,
+    provider: "asaas",
+    status: "pending",
+
+    plan: plan.id,
+    amount: plan.price,
+    billing_type: "CREDIT_CARD",
+
+    asaas_checkout_id: checkout.id,
+    checkout_external_reference: externalReference,
+  });
+
+if (subscriptionError) {
+  console.error(
+    "Erro ao registrar assinatura pendente:",
+    subscriptionError,
+  );
+
+  redirectToCheckoutError(
+    plan.id,
+    "O checkout foi criado, mas não foi possível registrar a assinatura.",
+  );
+}
+
+redirect(checkout.link);
 }

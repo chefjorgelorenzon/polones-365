@@ -7,16 +7,17 @@ type AsaasWebhookPayload = {
   event: string;
 
   payment?: {
-    id: string;
-    customer?: string;
-    subscription?: string;
-    externalReference?: string;
-    billingType?: string;
-    value?: number;
-    dueDate?: string;
-    paymentDate?: string;
-    confirmedDate?: string;
-  };
+  id: string;
+  customer?: string;
+  subscription?: string;
+  externalReference?: string;
+  checkoutSession?: string;
+  billingType?: string;
+  value?: number;
+  dueDate?: string;
+  paymentDate?: string;
+  confirmedDate?: string;
+};
 
   subscription?: {
     id: string;
@@ -283,6 +284,24 @@ export async function POST(request: Request) {
 
       localSubscription = data;
     }
+
+
+    const checkoutSession =
+  payload.payment?.checkoutSession ?? null;
+
+if (!localSubscription && checkoutSession) {
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .select("id, user_id")
+    .eq("asaas_checkout_id", checkoutSession)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  localSubscription = data;
+}
 
     const now = new Date().toISOString();
 
