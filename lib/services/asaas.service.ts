@@ -151,9 +151,10 @@ export class AsaasApiError extends Error {
 
 function getAsaasConfig() {
   const apiKey = process.env.ASAAS_API_KEY;
-  const baseUrl =
-    process.env.ASAAS_BASE_URL?.replace(/\/$/, "") ??
-    DEFAULT_ASAAS_BASE_URL;
+ const baseUrl =
+  process.env.ASAAS_BASE_URL?.replace(/\/$/, "") ??
+  process.env.ASAAS_API_URL?.replace(/\/$/, "") ??
+  DEFAULT_ASAAS_BASE_URL;
 
   if (!apiKey) {
     throw new Error(
@@ -372,4 +373,71 @@ export async function getAsaasPayment(
   return asaasRequest<AsaasPayment>(
     `/payments/${encodeURIComponent(paymentId)}`,
   );
+}
+
+export type AsaasCheckoutStatus =
+  | "ACTIVE"
+  | "CANCELED"
+  | "EXPIRED"
+  | "PAID";
+
+export type CreateAsaasCheckoutInput = {
+  billingTypes: Array<"CREDIT_CARD" | "PIX">;
+  chargeTypes: Array<
+    "DETACHED" | "RECURRENT" | "INSTALLMENT"
+  >;
+  minutesToExpire: number;
+  externalReference: string;
+
+  callback: {
+    successUrl: string;
+    cancelUrl: string;
+    expiredUrl: string;
+  };
+
+  items: Array<{
+    externalReference?: string;
+    name: string;
+    description: string;
+    quantity: number;
+    value: number;
+  }>;
+
+  customerData: {
+    name?: string;
+    email?: string;
+    cpfCnpj?: string;
+    phone?: string;
+    postalCode?: string;
+    address?: string;
+    addressNumber?: string;
+    province?: string;
+  };
+
+  subscription: {
+    cycle: AsaasSubscriptionCycle;
+    nextDueDate: string;
+    endDate?: string;
+  };
+};
+
+export type AsaasCheckout = {
+  id: string;
+  link: string;
+  status: AsaasCheckoutStatus;
+  billingTypes: Array<"CREDIT_CARD" | "PIX">;
+  chargeTypes: Array<
+    "DETACHED" | "RECURRENT" | "INSTALLMENT"
+  >;
+  minutesToExpire: number;
+  externalReference?: string | null;
+};
+
+export async function createAsaasCheckout(
+  input: CreateAsaasCheckoutInput,
+): Promise<AsaasCheckout> {
+  return asaasRequest<AsaasCheckout>("/checkouts", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }
