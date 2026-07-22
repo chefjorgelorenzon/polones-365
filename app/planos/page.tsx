@@ -1,4 +1,6 @@
 import Link from "next/link";
+
+import { createClient } from "@/lib/supabase/server";
 import {
   ArrowLeft,
   ArrowRight,
@@ -23,7 +25,6 @@ const plans = [
     price: "79,90",
     priceDescription: "por mês",
     totalDescription: "Cobrança mensal recorrente",
-    href: "/cadastro?plano=mensal",
     highlighted: false,
     badge: null,
     icon: CalendarDays,
@@ -44,7 +45,6 @@ const plans = [
     price: "59,90",
     priceDescription: "por mês",
     totalDescription: "R$ 718,80 cobrados anualmente",
-    href: "/cadastro?plano=anual",
     highlighted: true,
     badge: "Melhor escolha",
     icon: Crown,
@@ -65,7 +65,6 @@ const plans = [
     price: "69,90",
     priceDescription: "por mês",
     totalDescription: "R$ 209,70 cobrados a cada 3 meses",
-    href: "/cadastro?plano=trimestral",
     highlighted: false,
     badge: null,
     icon: Medal,
@@ -129,7 +128,13 @@ const questions = [
   },
 ];
 
-export default function PlansPage() {
+export default async function PlansPage() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <main className="min-h-screen bg-zinc-50 text-zinc-950">
       <header className="border-b border-zinc-200 bg-white">
@@ -213,6 +218,10 @@ export default function PlansPage() {
           <div className="grid items-stretch gap-6 lg:grid-cols-3">
             {plans.map((plan) => {
               const Icon = plan.icon;
+
+              const planHref = user
+                ? `/checkout?plano=${plan.id}`
+                : `/cadastro?plano=${plan.id}`;
 
               return (
                 <article
@@ -321,18 +330,18 @@ export default function PlansPage() {
                   </ul>
 
                   <Link
-  href={plan.href}
-  className={`mt-8 flex h-14 items-center justify-center gap-2 rounded-2xl px-5 text-center font-black transition ${
-    plan.highlighted
-      ? "bg-red-700 text-white shadow-xl shadow-red-900/40 hover:scale-[1.02] hover:bg-red-600"
-      : plan.id === "mensal"
-      ? "border-2 border-red-700 bg-white text-red-700 hover:bg-red-50"
-      : "bg-red-700 text-white shadow-lg shadow-red-700/20 hover:bg-red-600"
-  }`}
->
-  Escolher {plan.name.toLowerCase()}
-  <ArrowRight size={19} />
-</Link>
+                    href={planHref}
+                    className={`mt-8 flex h-14 items-center justify-center gap-2 rounded-2xl px-5 text-center font-black transition ${
+                      plan.highlighted
+                        ? "bg-red-700 text-white shadow-xl shadow-red-900/40 hover:scale-[1.02] hover:bg-red-600"
+                        : plan.id === "mensal"
+                          ? "border-2 border-red-700 bg-white text-red-700 hover:bg-red-50"
+                          : "bg-red-700 text-white shadow-lg shadow-red-700/20 hover:bg-red-600"
+                    }`}
+                  >
+                    Escolher {plan.name.toLowerCase()}
+                    <ArrowRight size={19} />
+                  </Link>
                 </article>
               );
             })}
@@ -445,7 +454,7 @@ export default function PlansPage() {
           </p>
 
           <Link
-            href="/cadastro?plano=anual"
+            href={user ? "/checkout?plano=anual" : "/cadastro?plano=anual"}
             className="mt-8 inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-red-700 px-7 font-black text-white transition hover:bg-red-600"
           >
             Começar com o plano anual

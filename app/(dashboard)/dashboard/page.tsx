@@ -10,6 +10,8 @@ import ProgressSummaryCard from "@/components/dashboard/ProgressSummaryCard";
 import RecentLessonsCard from "@/components/dashboard/RecentLessonsCard";
 import WeeklyGoalCard from "@/components/dashboard/WeeklyGoalCard";
 import { getDashboard } from "@/lib/services/dashboard.service";
+import PremiumBanner from "@/components/dashboard/PremiumBanner";
+import PremiumLock from "@/components/dashboard/PremiumLock";
 
 const COURSE_ID =
   "8b5ac23c-cdec-4c3f-954d-30f68c009777";
@@ -66,8 +68,16 @@ export default async function DashboardPage() {
         </div>
       </section>
 
+      {!dashboard.hasActiveSubscription && (
+  <div className="mt-8">
+    <PremiumBanner />
+  </div>
+)}
+
       <section className="mt-8 grid gap-6 xl:grid-cols-[1.45fr_0.55fr]">
-        <ContinueLessonCard dashboard={dashboard} />
+        <PremiumLock locked={!dashboard.hasActiveSubscription}>
+  <ContinueLessonCard dashboard={dashboard} />
+</PremiumLock>
 
         <WeeklyGoalCard goal={dashboard.weeklyGoal} />
       </section>
@@ -75,17 +85,21 @@ export default async function DashboardPage() {
       <section className="mt-6 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
         <WordOfDayCard />
 
-        <AchievementCard dashboard={dashboard} />
+        <PremiumLock locked={!dashboard.hasActiveSubscription}>
+  <AchievementCard dashboard={dashboard} />
+</PremiumLock>
 
         <PolandTipCard />
       </section>
 
       <section className="mt-6 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <RecentLessonsCard
-          lessons={dashboard.recentLessons}
-        />
+        <PremiumLock locked={!dashboard.hasActiveSubscription}>
+  <RecentLessonsCard lessons={dashboard.recentLessons} />
+</PremiumLock>
 
-        <ProgressSummaryCard dashboard={dashboard} />
+        <PremiumLock locked={!dashboard.hasActiveSubscription}>
+  <ProgressSummaryCard dashboard={dashboard} />
+</PremiumLock>
       </section>
     </div>
   );

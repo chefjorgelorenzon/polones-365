@@ -40,11 +40,23 @@ export type DashboardStreak = {
   current: number;
 };
 
+export type DashboardSubscriptionStatus =
+  | "active"
+  | "pending"
+  | "overdue"
+  | "cancelled"
+  | "expired"
+  | "inactive"
+  | null;
+
 export type DashboardData = {
   greeting: string;
 
   studentName: string;
   studentInitial: string;
+
+  hasActiveSubscription: boolean;
+  subscriptionStatus: DashboardSubscriptionStatus;
 
   completedLessons: number;
   remainingLessons: number;
@@ -70,6 +82,12 @@ type ProgressRecord = {
   last_accessed_at: string | null;
   created_at: string | null;
   updated_at: string | null;
+};
+
+type SubscriptionRecord = {
+  id: string;
+  status: string | null;
+  created_at: string | null;
 };
 
 function getGreeting(): string {
@@ -302,11 +320,49 @@ function getStudentName(
   return "Aluno";
 }
 
+function normalizeSubscriptionStatus(
+  status: string | null | undefined
+): DashboardSubscriptionStatus {
+  if (!status) {
+    return null;
+  }
+
+  const normalizedStatus = status
+    .trim()
+    .toLowerCase();
+
+  const allowedStatuses: Exclude<
+    DashboardSubscriptionStatus,
+    null
+  >[] = [
+    "active",
+    "pending",
+    "overdue",
+    "cancelled",
+    "expired",
+    "inactive",
+  ];
+
+  if (
+    allowedStatuses.includes(
+      normalizedStatus as Exclude<
+        DashboardSubscriptionStatus,
+        null
+      >
+    )
+  ) {
+    return normalizedStatus as Exclude<
+      DashboardSubscriptionStatus,
+      null
+    >;
+  }
+
+  return "inactive";
+}
+
 export async function getDashboard(
   courseId: string
 ): Promise<DashboardData> {
-  const course = await getStudentCourse(courseId);
-
   const supabase = await createClient();
 
   const {
@@ -332,35 +388,71 @@ export async function getDashboard(
   const studentInitial =
     studentName.charAt(0).toUpperCase() || "A";
 
-  const {
-    data: progressData,
-    error: progressError,
-  } = await supabase
-    .from("lesson_progress")
-    .select(
-      `
-        lesson_id,
-        started_at,
-        completed_at,
-        watch_seconds,
-        progress_percentage,
-        is_completed,
-        last_accessed_at,
-        created_at,
-        updated_at
-      `
-    )
-    .eq("user_id", user.id);
+  const [
+    course,
+    progressResponse,
+    subscriptionResponse,
+  ] = await Promise.all([
+    getStudentCourse(courseId),
 
-  if (progressError) {
+    supabase
+      .from("lesson_progress")
+      .select(
+        `
+          lesson_id,
+          started_at,
+          completed_at,
+          watch_seconds,
+          progress_percentage,
+          is_completed,
+          last_accessed_at,
+          created_at,
+          updated_at
+        `
+      )
+      .eq("user_id", user.id),
+
+    supabase
+      .from("subscriptions")
+      .select("id, status, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", {
+        ascending: false,
+      })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  if (progressResponse.error) {
     throw new Error(
-      `Erro ao buscar estatísticas do Dashboard: ${progressError.message}`
+      `Erro ao buscar estatísticas do Dashboard: ${progressResponse.error.message}`
+    );
+  }
+
+  if (subscriptionResponse.error) {
+    console.error(
+      "Erro ao buscar assinatura do aluno:",
+      subscriptionResponse.error.message
     );
   }
 
   const progressRecords =
-    (progressData as ProgressRecord[] | null) ??
-    [];
+    (progressResponse.data as
+      | ProgressRecord[]
+      | null) ?? [];
+
+  const subscription =
+    subscriptionResponse.data as
+      | SubscriptionRecord
+      | null;
+
+  const subscriptionStatus =
+    normalizeSubscriptionStatus(
+      subscription?.status
+    );
+
+  const hasActiveSubscription =
+    subscriptionStatus === "active";
 
   const nextLesson = course.nextLessonId
     ? course.modules
@@ -397,6 +489,9 @@ export async function getDashboard(
 
     studentName,
     studentInitial,
+
+    hasActiveSubscription,
+    subscriptionStatus,
 
     completedLessons:
       course.completedLessons,
