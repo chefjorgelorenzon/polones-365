@@ -244,61 +244,62 @@ export async function POST(request: Request) {
       user_id: string;
     } | null = null;
 
-    if (asaasSubscriptionId) {
-      const {
-        data,
-        error,
-      } = await supabase
-        .from("subscriptions")
-        .select("id, user_id")
-        .eq(
-          "asaas_subscription_id",
-          asaasSubscriptionId,
-        )
-        .maybeSingle();
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      localSubscription = data;
-    }
-
-    if (!localSubscription && userId) {
-      const {
-        data,
-        error,
-      } = await supabase
-        .from("subscriptions")
-        .select("id, user_id")
-        .eq("user_id", userId)
-        .order("created_at", {
-          ascending: false,
-        })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      localSubscription = data;
-    }
-
-
     const checkoutSession =
   payload.payment?.checkoutSession ?? null;
 
-if (!localSubscription && checkoutSession) {
+// 1º Procura pelo checkout
+if (checkoutSession) {
   const { data, error } = await supabase
     .from("subscriptions")
     .select("id, user_id")
     .eq("asaas_checkout_id", checkoutSession)
     .maybeSingle();
 
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
+
+  localSubscription = data;
+}
+
+// 2º Procura pela assinatura Asaas
+if (!localSubscription && asaasSubscriptionId) {
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .select("id, user_id")
+    .eq("asaas_subscription_id", asaasSubscriptionId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+
+  localSubscription = data;
+}
+
+// 3º Procura pela externalReference
+if (!localSubscription && externalReference) {
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .select("id, user_id")
+    .eq("checkout_external_reference", externalReference)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+
+  localSubscription = data;
+}
+
+// 4º Último recurso
+if (!localSubscription && userId) {
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .select("id, user_id")
+    .eq("user_id", userId)
+    .eq("status", "pending")
+    .order("created_at", {
+      ascending: false,
+    })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
 
   localSubscription = data;
 }
