@@ -133,6 +133,8 @@ export function isValidPlanId(value: string | null | undefined): value is PlanId
   return PLAN_IDS.includes(value as PlanId);
 }
 
+export const isPlanType = isValidPlanId;
+
 export function getPlanById(
   planId: string | null | undefined,
 ): SubscriptionPlan | null {
