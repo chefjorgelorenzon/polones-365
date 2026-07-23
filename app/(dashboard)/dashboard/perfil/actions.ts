@@ -74,10 +74,13 @@ export async function updateProfileAction(
       .eq("id", user.id);
 
     if (error) {
-      console.error("Erro ao atualizar perfil:", error);
+  console.error(error);
 
-      return initialErrorState;
-    }
+  return {
+    success: false,
+    message: error.message,
+  };
+}
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/perfil");
