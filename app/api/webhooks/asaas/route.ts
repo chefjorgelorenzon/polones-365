@@ -129,9 +129,29 @@ export async function POST(request: Request) {
   try {
     payload =
       (await request.json()) as AsaasWebhookPayload;
-      console.log(
-  JSON.stringify(payload, null, 2)
-);
+        console.log("========== WEBHOOK ASAAS ==========");
+    console.log("EVENTO:", payload.event);
+    console.log("EVENT ID:", payload.id);
+    console.log(
+      "CHECKOUT:",
+      payload.payment?.checkoutSession
+    );
+    console.log(
+      "SUBSCRIPTION:",
+      payload.payment?.subscription
+    );
+    console.log(
+      "PAYMENT:",
+      payload.payment?.id
+    );
+    console.log(
+      "EXTERNAL REFERENCE:",
+      payload.payment?.externalReference
+    );
+    console.log(
+      "PAYLOAD:",
+      JSON.stringify(payload, null, 2)
+    );
   } catch {
     return NextResponse.json(
       {
@@ -372,6 +392,11 @@ if (!localSubscription && userId) {
 
     if (status === "active") {
       updateData.activated_at = now;
+
+      console.log(
+  "LOCAL SUBSCRIPTION:",
+  localSubscription
+);
 
       if (!localSubscription) {
         updateData.started_at = now;
