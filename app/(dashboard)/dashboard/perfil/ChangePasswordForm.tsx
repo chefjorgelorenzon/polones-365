@@ -155,7 +155,7 @@ export default function ChangePasswordForm() {
   }
 
   return (
-    <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-7">
+    <div>
       <div className="flex items-start gap-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-700">
           <ShieldCheck size={24} />
@@ -301,7 +301,7 @@ export default function ChangePasswordForm() {
           </button>
         </div>
       </form>
-    </section>
+    </div>
   );
 }
 

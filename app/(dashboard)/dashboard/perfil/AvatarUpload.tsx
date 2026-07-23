@@ -197,7 +197,7 @@ export default function AvatarUpload({
   }
 
   return (
-    <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-7">
+    <div>
       <div>
         <p className="text-xs font-black uppercase tracking-[0.18em] text-red-700">
           Foto de perfil
@@ -336,7 +336,7 @@ export default function AvatarUpload({
           <p>{message.text}</p>
         </div>
       )}
-    </section>
+    </div>
   );
 }
 
