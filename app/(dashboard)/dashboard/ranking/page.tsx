@@ -1,4 +1,4 @@
-import Image from "next/image";
+
 import { redirect } from "next/navigation";
 import {
   ArrowUp,
@@ -690,22 +690,22 @@ function Avatar({
   if (avatarUrl) {
     return (
       <div
-        className={`relative shrink-0 overflow-hidden rounded-full border-2 border-white bg-zinc-100 shadow-sm ${sizeClasses}`}
+        className={`overflow-hidden rounded-full border-2 border-white bg-zinc-100 shadow-sm ${sizeClasses}`}
       >
-        <Image
-          src={avatarUrl}
-          alt={`Foto de ${name}`}
-          fill
-          sizes={size === "large" ? "80px" : "44px"}
-          className="object-cover"
-        />
+        <img
+  src={avatarUrl}
+  alt={`Foto de ${name}`}
+  className="h-full w-full object-cover"
+  loading="lazy"
+  referrerPolicy="no-referrer"
+/>
       </div>
     );
   }
 
   return (
     <div
-      className={`flex shrink-0 items-center justify-center rounded-full bg-red-100 font-black text-red-700 ${sizeClasses}`}
+      className={`flex items-center justify-center rounded-full bg-red-100 font-black text-red-700 ${sizeClasses}`}
     >
       {getInitials(name)}
     </div>
