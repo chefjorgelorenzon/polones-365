@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/services/profile.service";
+import ProfileForm from "./ProfileForm";
 
 export default async function PerfilPage() {
   const profile = await getCurrentProfile();
@@ -15,91 +16,27 @@ export default async function PerfilPage() {
           Minha conta
         </p>
 
-        <h1 className="mt-2 text-4xl font-black text-zinc-950">
+        <h1 className="mt-2 text-3xl font-black text-zinc-950 sm:text-4xl">
           Meu perfil
         </h1>
 
         <p className="mt-3 max-w-2xl text-zinc-600">
-          Gerencie suas informações pessoais e preferências de estudo.
+          Atualize suas informações pessoais e defina suas preferências de
+          aprendizado.
         </p>
       </div>
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-black text-zinc-950">
-            Informações pessoais
-          </h2>
-
-          <div className="mt-6 space-y-5">
-            <Field
-              label="Nome completo"
-              value={profile.full_name ?? "-"}
-            />
-
-            <Field
-              label="WhatsApp"
-              value={profile.phone ?? "-"}
-            />
-
-            <Field
-              label="Função"
-              value={profile.role}
-            />
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-black text-zinc-950">
-            Aprendizado
-          </h2>
-
-          <div className="mt-6 space-y-5">
-            <Field
-              label="Objetivo"
-              value={profile.study_goal ?? "Não informado"}
-            />
-
-            <Field
-              label="Nível"
-              value={profile.current_level ?? "Não informado"}
-            />
-
-            <Field
-              label="Meta diária"
-              value={
-                profile.daily_goal_minutes
-                  ? `${profile.daily_goal_minutes} minutos`
-                  : "Não definida"
-              }
-            />
-
-            <Field
-              label="Aula atual"
-              value={String(profile.current_lesson_number)}
-            />
-          </div>
-        </div>
-      </section>
+      <ProfileForm
+        profile={{
+          full_name: profile.full_name,
+          phone: profile.phone,
+          role: profile.role,
+          study_goal: profile.study_goal,
+          current_level: profile.current_level,
+          daily_goal_minutes: profile.daily_goal_minutes,
+          current_lesson_number: profile.current_lesson_number,
+        }}
+      />
     </main>
-  );
-}
-
-function Field({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div>
-      <p className="text-xs font-black uppercase tracking-wider text-zinc-400">
-        {label}
-      </p>
-
-      <p className="mt-1 text-base font-semibold text-zinc-900">
-        {value}
-      </p>
-    </div>
   );
 }

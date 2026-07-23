@@ -19,7 +19,7 @@ type CheckoutPageProps = {
 type Profile = {
   full_name: string | null;
   phone: string | null;
-  cpf_cnpj: string | null;
+  cpf: string | null;
   postal_code: string | null;
   address: string | null;
   address_number: string | null;
@@ -63,7 +63,7 @@ export default async function CheckoutPage({
     .select(`
       full_name,
       phone,
-      cpf_cnpj,
+      cpf,
       postal_code,
       address,
       address_number,
@@ -87,9 +87,9 @@ export default async function CheckoutPage({
     user.user_metadata?.phone?.trim() ||
     "";
 
-  const customerCpfCnpj =
-    profile?.cpf_cnpj?.trim() ||
-    user.user_metadata?.cpf_cnpj?.trim() ||
+  const customerCpf =
+    profile?.cpf?.trim() ||
+    user.user_metadata?.cpf?.trim() ||
     "";
 
   const customerPostalCode =
@@ -158,7 +158,7 @@ export default async function CheckoutPage({
               name: customerName,
               email: customerEmail,
               phone: customerPhone,
-              cpfCnpj: customerCpfCnpj,
+              cpfCnpj: customerCpf,
               postalCode: customerPostalCode,
               address: customerAddress,
               addressNumber: customerAddressNumber,
