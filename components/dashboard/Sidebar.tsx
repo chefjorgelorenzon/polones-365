@@ -1,15 +1,22 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   BookOpen,
   ChartNoAxesColumnIncreasing,
   CircleUserRound,
   GraduationCap,
   House,
+  LoaderCircle,
   LogOut,
   Medal,
   PlayCircle,
   Settings,
 } from "lucide-react";
+
+import { createClient } from "@/lib/supabase/client";
 
 const menuItems = [
   {
@@ -53,6 +60,31 @@ const accountItems = [
 ];
 
 export default function Sidebar() {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState("");
+
+  async function handleSignOut() {
+    if (isSigningOut) return;
+
+    setIsSigningOut(true);
+    setSignOutError("");
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Erro ao sair da conta:", error);
+      setSignOutError("Não foi possível sair. Tente novamente.");
+      setIsSigningOut(false);
+      return;
+    }
+
+    router.replace("/login");
+    router.refresh();
+  }
+
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-zinc-200 bg-white lg:flex lg:flex-col">
       <div className="flex h-24 items-center border-b border-zinc-100 px-7">
@@ -128,11 +160,28 @@ export default function Sidebar() {
 
           <button
             type="button"
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 py-2.5 text-sm font-bold text-zinc-300 transition hover:bg-white/10 hover:text-white"
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 py-2.5 text-sm font-bold text-zinc-300 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <LogOut size={17} />
-            Sair
+            {isSigningOut ? (
+              <>
+                <LoaderCircle size={17} className="animate-spin" />
+                Saindo...
+              </>
+            ) : (
+              <>
+                <LogOut size={17} />
+                Sair
+              </>
+            )}
           </button>
+
+          {signOutError && (
+            <p className="mt-2 text-center text-xs font-semibold text-red-300">
+              {signOutError}
+            </p>
+          )}
         </div>
       </div>
     </aside>
