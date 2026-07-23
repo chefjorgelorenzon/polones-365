@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/services/profile.service";
 import ProfileForm from "./ProfileForm";
 import AvatarUpload from "./AvatarUpload";
+import ChangePasswordForm from "./ChangePasswordForm";
 
 export default async function PerfilPage() {
   const profile = await getCurrentProfile();
@@ -44,6 +45,8 @@ export default async function PerfilPage() {
       current_lesson_number: profile.current_lesson_number,
     }}
   />
+
+  <ChangePasswordForm />
 </main>
   );
 }
