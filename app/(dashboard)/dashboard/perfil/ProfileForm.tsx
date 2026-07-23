@@ -35,28 +35,32 @@ const initialState: ProfileActionState = {
 
 const studyGoals = [
   {
-    value: "Conversação",
-    label: "Conversação",
-  },
-  {
-    value: "Viagem",
-    label: "Viagem para a Polônia",
-  },
-  {
-    value: "Trabalho",
-    label: "Trabalho e carreira",
-  },
-  {
-    value: "Cidadania",
+    value: "cidadania",
     label: "Cidadania polonesa",
   },
   {
-    value: "Família",
+    value: "viagem",
+    label: "Viagem para a Polônia",
+  },
+  {
+    value: "morar_polonia",
+    label: "Morar na Polônia",
+  },
+  {
+    value: "trabalho",
+    label: "Trabalho e carreira",
+  },
+  {
+    value: "familia",
     label: "Comunicação com familiares",
   },
   {
-    value: "Cultura",
-    label: "Cultura e interesse pessoal",
+    value: "hobby",
+    label: "Hobby e interesse pessoal",
+  },
+  {
+    value: "outro",
+    label: "Outro objetivo",
   },
 ];
 
