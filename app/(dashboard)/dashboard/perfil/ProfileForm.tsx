@@ -62,19 +62,19 @@ const studyGoals = [
 
 const levels = [
   {
-    value: "Iniciante",
+    value: "iniciante",
     label: "Iniciante",
   },
   {
-    value: "Básico",
+    value: "basico",
     label: "Básico",
   },
   {
-    value: "Intermediário",
+    value: "intermediario",
     label: "Intermediário",
   },
   {
-    value: "Avançado",
+    value: "avancado",
     label: "Avançado",
   },
 ];
