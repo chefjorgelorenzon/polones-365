@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   BookOpen,
   ChartNoAxesColumnIncreasing,
   CircleUserRound,
-  GraduationCap,
   House,
   LoaderCircle,
   LogOut,
@@ -59,12 +58,82 @@ const accountItems = [
   },
 ];
 
+type Profile = {
+  full_name: string | null;
+  avatar_url: string | null;
+};
+
 export default function Sidebar() {
   const router = useRouter();
-  const supabase = createClient();
+  const pathname = usePathname();
 
+  const supabase = useMemo(() => createClient(), []);
+
+  const [profile, setProfile] = useState<Profile>({
+    full_name: null,
+    avatar_url: null,
+  });
+
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState("");
+
+  const loadProfile = useCallback(async () => {
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        console.error("Erro ao carregar usuário:", userError);
+        return;
+      }
+
+      const { data, error: profileError } = await supabase
+        .from("profiles")
+        .select("full_name, avatar_url")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Erro ao carregar perfil:", profileError);
+        return;
+      }
+
+      setProfile({
+        full_name: data.full_name,
+        avatar_url: data.avatar_url,
+      });
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  }, [supabase]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  useEffect(() => {
+    function handleProfileUpdated() {
+      loadProfile();
+    }
+
+    window.addEventListener("profile-updated", handleProfileUpdated);
+    window.addEventListener("avatar-updated", handleProfileUpdated);
+
+    return () => {
+      window.removeEventListener(
+        "profile-updated",
+        handleProfileUpdated,
+      );
+
+      window.removeEventListener(
+        "avatar-updated",
+        handleProfileUpdated,
+      );
+    };
+  }, [loadProfile]);
 
   async function handleSignOut() {
     if (isSigningOut) return;
@@ -84,6 +153,22 @@ export default function Sidebar() {
     router.replace("/login");
     router.refresh();
   }
+
+  function isActiveLink(href: string) {
+    if (href === "/dashboard") {
+      return pathname === "/dashboard";
+    }
+
+    return pathname.startsWith(href);
+  }
+
+  const studentName =
+    profile.full_name?.trim() || "Aluno Polonês";
+
+  const firstName =
+    studentName.split(/\s+/)[0] || "Aluno";
+
+  const initials = getInitials(studentName);
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-zinc-200 bg-white lg:flex lg:flex-col">
@@ -111,20 +196,24 @@ export default function Sidebar() {
         </p>
 
         <nav className="mt-3 space-y-1">
-          {menuItems.map(({ label, href, icon: Icon }, index) => (
-            <Link
-              key={href}
-              href={href}
-              className={`flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-bold transition ${
-                index === 0
-                  ? "bg-red-50 text-red-700"
-                  : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
-              }`}
-            >
-              <Icon size={20} />
-              {label}
-            </Link>
-          ))}
+          {menuItems.map(({ label, href, icon: Icon }) => {
+            const active = isActiveLink(href);
+
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-bold transition ${
+                  active
+                    ? "bg-red-50 text-red-700"
+                    : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
+                }`}
+              >
+                <Icon size={20} />
+                {label}
+              </Link>
+            );
+          })}
         </nav>
 
         <p className="mt-9 px-3 text-xs font-black uppercase tracking-[0.22em] text-zinc-400">
@@ -132,30 +221,64 @@ export default function Sidebar() {
         </p>
 
         <nav className="mt-3 space-y-1">
-          {accountItems.map(({ label, href, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-bold text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950"
-            >
-              <Icon size={20} />
-              {label}
-            </Link>
-          ))}
+          {accountItems.map(({ label, href, icon: Icon }) => {
+            const active = isActiveLink(href);
+
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-bold transition ${
+                  active
+                    ? "bg-red-50 text-red-700"
+                    : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
+                }`}
+              >
+                <Icon size={20} />
+                {label}
+              </Link>
+            );
+          })}
         </nav>
       </div>
 
       <div className="border-t border-zinc-100 p-4">
         <div className="rounded-2xl bg-zinc-950 p-4 text-white">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-700">
-              <GraduationCap size={22} />
+            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-red-700 text-sm font-black text-white">
+              {isLoadingProfile ? (
+                <LoaderCircle
+                  size={20}
+                  className="animate-spin"
+                />
+              ) : profile.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={`Foto de perfil de ${studentName}`}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                initials
+              )}
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-black">Bruno</p>
-              <p className="truncate text-xs text-zinc-400">Plano anual</p>
+              <p className="truncate text-sm font-black">
+                {isLoadingProfile ? "Carregando..." : firstName}
+              </p>
+
+              <p className="truncate text-xs text-zinc-400">
+                Plano anual
+              </p>
             </div>
+
+            <Link
+              href="/dashboard/perfil"
+              aria-label="Abrir meu perfil"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-zinc-400 transition hover:bg-white/10 hover:text-white"
+            >
+              <Settings size={17} />
+            </Link>
           </div>
 
           <button
@@ -166,7 +289,10 @@ export default function Sidebar() {
           >
             {isSigningOut ? (
               <>
-                <LoaderCircle size={17} className="animate-spin" />
+                <LoaderCircle
+                  size={17}
+                  className="animate-spin"
+                />
                 Saindo...
               </>
             ) : (
@@ -186,4 +312,21 @@ export default function Sidebar() {
       </div>
     </aside>
   );
+}
+
+function getInitials(fullName: string) {
+  const names = fullName
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (names.length === 0) {
+    return "AL";
+  }
+
+  if (names.length === 1) {
+    return names[0].slice(0, 2).toUpperCase();
+  }
+
+  return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
 }
