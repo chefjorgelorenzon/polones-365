@@ -129,6 +129,9 @@ export async function POST(request: Request) {
   try {
     payload =
       (await request.json()) as AsaasWebhookPayload;
+      console.log(
+  JSON.stringify(payload, null, 2)
+);
   } catch {
     return NextResponse.json(
       {
