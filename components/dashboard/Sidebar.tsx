@@ -13,6 +13,7 @@ import {
   Medal,
   PlayCircle,
   Settings,
+  Trophy,
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -37,6 +38,11 @@ const menuItems = [
     label: "Meu progresso",
     href: "/dashboard/progresso",
     icon: ChartNoAxesColumnIncreasing,
+  },
+   {
+    label: "Ranking",
+    href: "/dashboard/ranking",
+    icon: Trophy,
   },
   {
     label: "Conquistas",
