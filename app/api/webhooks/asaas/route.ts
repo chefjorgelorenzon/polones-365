@@ -412,84 +412,167 @@ if (!localSubscription && userId) {
       updateData.access_until = now;
     }
 
-    if (localSubscription) {
-      const { error: updateError } =
-        await supabase
-          .from("subscriptions")
-          .update(updateData)
-          .eq("id", localSubscription.id);
+   console.log("========== RESULTADO DA BUSCA ==========");
+console.log("EVENTO:", payload.event);
+console.log(
+  "CHECKOUT SESSION:",
+  payload.payment?.checkoutSession,
+);
+console.log(
+  "ASAAS SUBSCRIPTION ID:",
+  payload.payment?.subscription,
+);
+console.log(
+  "ASAAS PAYMENT ID:",
+  payload.payment?.id,
+);
+console.log(
+  "EXTERNAL REFERENCE:",
+  payload.payment?.externalReference,
+);
+console.log("USER ID EXTRAÍDO:", userId);
+console.log(
+  "ASSINATURA LOCAL ENCONTRADA:",
+  localSubscription,
+);
 
-      if (updateError) {
-        throw new Error(updateError.message);
-      }
-    } else {
-      if (!userId) {
-        throw new Error(
-          "Não foi possível identificar o usuário pelo evento.",
-        );
-      }
+if (localSubscription) {
+  console.log(
+    "Atualizando assinatura existente:",
+    localSubscription.id,
+  );
 
-      const insertData = {
-        ...updateData,
-        user_id: userId,
-        plan:
-          planReference &&
-          planReference.length < 100
-            ? planReference
-            : null,
-      };
+  const { error: updateError } = await supabase
+    .from("subscriptions")
+    .update(updateData)
+    .eq("id", localSubscription.id);
 
-      const { error: insertError } =
-        await supabase
-          .from("subscriptions")
-          .insert(insertData);
+  if (updateError) {
+    throw new Error(updateError.message);
+  }
+} else {
+  console.log(
+    "Nenhuma assinatura local encontrada.",
+  );
 
-      if (insertError) {
-        throw new Error(insertError.message);
-      }
-    }
+  if (!userId) {
+    const message =
+      "Evento ignorado: nenhuma assinatura local corresponde ao checkout recebido.";
+
+    console.warn(message, {
+      event: payload.event,
+      checkoutSession,
+      asaasSubscriptionId,
+      paymentId: payload.payment?.id,
+    });
 
     await supabase
       .from("asaas_webhook_events")
       .update({
         processed: true,
         processed_at: now,
-        error_message: null,
-      })
-      .eq("id", savedEvent.id);
-
-    return NextResponse.json({
-      success: true,
-      event: payload.event,
-      status,
-    });
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Erro desconhecido.";
-
-    console.error(
-      `Erro ao processar webhook ${payload.event}:`,
-      message,
-    );
-
-    await supabase
-      .from("asaas_webhook_events")
-      .update({
-        processed: false,
         error_message: message,
       })
       .eq("id", savedEvent.id);
 
     return NextResponse.json(
       {
-        success: false,
-        error: message,
+        success: true,
+        ignored: true,
+        message,
+        event: payload.event,
+        checkoutSession,
       },
       {
-        status: 500,
+        status: 200,
       },
     );
   }
+
+  const insertData = {
+    ...updateData,
+    user_id: userId,
+    plan:
+      planReference &&
+      planReference.length < 100
+        ? planReference
+        : null,
+    asaas_checkout_id: checkoutSession,
+    checkout_external_reference:
+      externalReference ?? null,
+  };
+
+  console.log(
+    "Criando nova assinatura:",
+    insertData,
+  );
+
+  const { error: insertError } = await supabase
+    .from("subscriptions")
+    .insert(insertData);
+
+  if (insertError) {
+    throw new Error(insertError.message);
+  }
+
+  console.log(
+    "Nova assinatura criada com sucesso.",
+  );
+}
+
+await supabase
+  .from("asaas_webhook_events")
+  .update({
+    processed: true,
+    processed_at: now,
+    error_message: null,
+  })
+  .eq("id", savedEvent.id);
+
+return NextResponse.json({
+  success: true,
+  event: payload.event,
+  status,
+});
+} catch (error) {
+  const message =
+    error instanceof Error
+      ? error.message
+      : "Erro desconhecido.";
+
+  console.error(
+    "========== ERRO WEBHOOK ASAAS =========="
+  );
+
+  console.error({
+    event: payload?.event,
+    checkoutSession:
+      payload?.payment?.checkoutSession,
+    subscriptionId:
+      payload?.payment?.subscription,
+    paymentId:
+      payload?.payment?.id,
+    externalReference:
+      payload?.payment?.externalReference,
+    message,
+  });
+
+  await supabase
+    .from("asaas_webhook_events")
+    .update({
+      processed: false,
+      error_message: message,
+    })
+    .eq("id", savedEvent.id);
+
+  return NextResponse.json(
+    {
+      success: false,
+      error: message,
+    },
+    {
+      status: 500,
+    },
+  );
+}
 }
