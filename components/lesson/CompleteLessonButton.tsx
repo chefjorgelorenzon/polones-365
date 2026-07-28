@@ -12,11 +12,13 @@ import { markLessonCompleted } from "@/lib/services/progress.service";
 type Props = {
   lessonId: string;
   initialCompleted: boolean;
+  disabled?: boolean;
 };
 
 export default function CompleteLessonButton({
   lessonId,
   initialCompleted,
+  disabled,
 }: Props) {
   const router = useRouter();
 
@@ -57,7 +59,10 @@ export default function CompleteLessonButton({
     }
   }
 
-  const isDisabled = isSaving || completed;
+  const isDisabled =
+  disabled ||
+  isSaving ||
+  completed;
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -87,6 +92,11 @@ export default function CompleteLessonButton({
             : "Marcar como concluída"}
       </button>
 
+{disabled && !completed && (
+  <p className="max-w-[260px] text-center text-xs font-medium text-zinc-500">
+    Conclua o quiz para liberar esta aula.
+  </p>
+)}
       {errorMessage && (
         <p className="max-w-[260px] text-center text-xs font-medium text-red-700">
           {errorMessage}
