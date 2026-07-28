@@ -135,6 +135,8 @@ export default function LessonQuiz({
         formattedAnswers
       );
 
+      setResult(quizResult);
+
       window.scrollTo({
   top: 0,
   behavior: "smooth",
