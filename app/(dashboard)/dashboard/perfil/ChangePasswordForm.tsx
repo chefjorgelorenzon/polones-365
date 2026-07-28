@@ -9,7 +9,7 @@ import {
   KeyRound,
   LoaderCircle,
   LockKeyhole,
-  ShieldCheck,
+  
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -155,28 +155,7 @@ export default function ChangePasswordForm() {
   }
 
   return (
-    <div>
-      <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-700">
-          <ShieldCheck size={24} />
-        </div>
-
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-red-700">
-            Segurança
-          </p>
-
-          <h2 className="mt-2 text-xl font-black text-zinc-950">
-            Alterar senha
-          </h2>
-
-          <p className="mt-2 text-sm leading-6 text-zinc-500">
-            Confirme sua senha atual e escolha uma nova senha para
-            proteger sua conta.
-          </p>
-        </div>
-      </div>
-
+    <div> 
       <form
         onSubmit={handleSubmit}
         className="mt-7 space-y-5"
