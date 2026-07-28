@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import {
   getLessonQuiz,
+  getLessonQuizResult,
   submitLessonQuiz,
 } from "@/lib/services/quiz.service";
 import type {
@@ -39,28 +40,34 @@ export default function LessonQuiz({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadQuiz() {
-      try {
-        setLoading(true);
-        setError(null);
+  async function loadQuiz() {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const quizQuestions = await getLessonQuiz(lessonId);
+      const [quizQuestions, previousResult] = await Promise.all([
+        getLessonQuiz(lessonId),
+        getLessonQuizResult(lessonId),
+      ]);
 
-        setQuestions(quizQuestions);
-        setAnswers({});
-        setCurrentQuestionIndex(0);
-        setResult(null);
-      } catch (err) {
-        console.error(err);
-        setError("Não foi possível carregar o quiz desta aula.");
-      } finally {
-        setLoading(false);
+      setQuestions(quizQuestions);
+      setAnswers({});
+      setCurrentQuestionIndex(0);
+      setResult(previousResult);
+
+      if (previousResult) {
+        onCompleted?.();
       }
+    } catch (err) {
+      console.error(err);
+      setError("Não foi possível carregar o quiz desta aula.");
+    } finally {
+      setLoading(false);
     }
+  }
 
-    void loadQuiz();
-  }, [lessonId]);
-
+  void loadQuiz();
+}, [lessonId, onCompleted]);
   const currentQuestion = questions[currentQuestionIndex];
 
   const selectedOptionId = currentQuestion
@@ -131,17 +138,18 @@ export default function LessonQuiz({
       }));
 
       const quizResult = await submitLessonQuiz(
-        lessonId,
-        formattedAnswers
-      );
+  lessonId,
+  formattedAnswers
+);
 
-      setResult(quizResult);
+setResult(quizResult);
 
-      window.scrollTo({
+window.scrollTo({
   top: 0,
   behavior: "smooth",
 });
-      onCompleted?.();
+
+onCompleted?.();
     } catch (err) {
       console.error(err);
       setError("Não foi possível enviar as respostas do quiz.");
