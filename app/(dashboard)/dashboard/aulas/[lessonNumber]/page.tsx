@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import CompleteLessonButton from "@/components/lesson/CompleteLessonButton";
+import VideoPlayer from "@/components/player/VideoPlayer";
 
 import {
   getLessonAccess,
@@ -23,7 +24,6 @@ import {
 
 import {
   getLessonMaterialUrl,
-  getLessonVideoUrl,
 } from "@/lib/services/storage.service";
 
 const COURSE_ID =
@@ -44,7 +44,7 @@ export default async function LessonPage({
 
   if (
     Number.isNaN(parsedLessonNumber) ||
-    parsedLessonNumber < 1 ||
+    parsedLessonNumber < 0 ||
     parsedLessonNumber > 365
   ) {
     notFound();
@@ -68,15 +68,12 @@ export default async function LessonPage({
 
   if (!lesson) {
     notFound();
-  };
+  }
 
   const [
-    videoUrl,
     materialUrl,
     isCompleted,
   ] = await Promise.all([
-    getLessonVideoUrl(lesson.video_path),
-
     getLessonMaterialUrl(
       lesson.exercise_pdf_path
     ),
@@ -85,7 +82,7 @@ export default async function LessonPage({
   ]);
 
   const previousLessonNumber =
-    parsedLessonNumber > 1
+    parsedLessonNumber > 0
       ? parsedLessonNumber - 1
       : null;
 
@@ -110,7 +107,9 @@ export default async function LessonPage({
       <section className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
         <div className="border-b border-zinc-100 p-6 lg:p-8">
           <p className="text-sm font-black uppercase tracking-[0.18em] text-red-700">
-            Aula {lesson.lesson_number}
+            {lesson.lesson_number === 0
+              ? "Introdução"
+              : `Aula ${lesson.lesson_number}`}
           </p>
 
           <h1 className="mt-3 text-3xl font-black text-zinc-950 lg:text-4xl">
@@ -141,41 +140,28 @@ export default async function LessonPage({
         </div>
 
         <div className="p-6 lg:p-8">
-          <div className="overflow-hidden rounded-3xl bg-black">
-            {videoUrl ? (
-              <video
-                controls
-                preload="metadata"
-                className="aspect-video w-full bg-black"
-              >
-                <source
-                  src={videoUrl}
-                  type="video/mp4"
+          {lesson.video_path ? (
+            <VideoPlayer
+              src={lesson.video_path}
+            />
+          ) : (
+            <div className="flex aspect-video items-center justify-center overflow-hidden rounded-3xl bg-black text-white">
+              <div className="text-center">
+                <PlayCircle
+                  size={64}
+                  className="mx-auto text-zinc-600"
                 />
 
-                Seu navegador não suporta a reprodução
-                deste vídeo.
-              </video>
-            ) : (
-              <div className="flex aspect-video items-center justify-center text-white">
-                <div className="text-center">
-                  <PlayCircle
-                    size={64}
-                    className="mx-auto text-zinc-600"
-                  />
+                <p className="mt-4 text-lg font-black">
+                  Vídeo indisponível
+                </p>
 
-                  <p className="mt-4 text-lg font-black">
-                    Vídeo indisponível
-                  </p>
-
-                  <p className="mt-2 text-sm text-zinc-400">
-                    Não foi possível carregar o vídeo
-                    desta aula.
-                  </p>
-                </div>
+                <p className="mt-2 text-sm text-zinc-400">
+                  O vídeo desta aula ainda não foi cadastrado.
+                </p>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {lesson.content && (
             <div className="mt-8">
@@ -198,8 +184,7 @@ export default async function LessonPage({
                   </p>
 
                   <p className="mt-1 text-sm text-zinc-500">
-                    Abra o material para praticar o
-                    conteúdo.
+                    Abra o material para praticar o conteúdo.
                   </p>
                 </div>
 
@@ -227,7 +212,7 @@ export default async function LessonPage({
 
           <div className="mt-8 grid gap-4 border-t border-zinc-100 pt-6 sm:grid-cols-3 sm:items-center">
             <div className="flex justify-center sm:justify-start">
-              {previousLessonNumber ? (
+              {previousLessonNumber !== null ? (
                 <Link
                   href={`/dashboard/aulas/${previousLessonNumber}`}
                   className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 px-5 py-3 text-sm font-black text-zinc-700 transition hover:border-red-300 hover:text-red-700"
