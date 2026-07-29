@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  RotateCcw,
   Trophy,
 } from "lucide-react";
 import {
@@ -158,12 +157,7 @@ onCompleted?.();
     }
   }
 
-  function handleRestartQuiz() {
-    setAnswers({});
-    setCurrentQuestionIndex(0);
-    setResult(null);
-    setError(null);
-  }
+
 
   if (loading) {
     return (
@@ -311,14 +305,7 @@ onCompleted?.();
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleRestartQuiz}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 px-5 py-3.5 font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
-          >
-            <RotateCcw className="h-5 w-5" />
-            Refazer quiz
-          </button>
+        
         </div>
       </section>
     );
