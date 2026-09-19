@@ -129,29 +129,6 @@ export async function POST(request: Request) {
   try {
     payload =
       (await request.json()) as AsaasWebhookPayload;
-        console.log("========== WEBHOOK ASAAS ==========");
-    console.log("EVENTO:", payload.event);
-    console.log("EVENT ID:", payload.id);
-    console.log(
-      "CHECKOUT:",
-      payload.payment?.checkoutSession
-    );
-    console.log(
-      "SUBSCRIPTION:",
-      payload.payment?.subscription
-    );
-    console.log(
-      "PAYMENT:",
-      payload.payment?.id
-    );
-    console.log(
-      "EXTERNAL REFERENCE:",
-      payload.payment?.externalReference
-    );
-    console.log(
-      "PAYLOAD:",
-      JSON.stringify(payload, null, 2)
-    );
   } catch {
     return NextResponse.json(
       {
@@ -393,11 +370,6 @@ if (!localSubscription && userId) {
     if (status === "active") {
       updateData.activated_at = now;
 
-      console.log(
-  "LOCAL SUBSCRIPTION:",
-  localSubscription
-);
-
       if (!localSubscription) {
         updateData.started_at = now;
       }
@@ -412,36 +384,7 @@ if (!localSubscription && userId) {
       updateData.access_until = now;
     }
 
-   console.log("========== RESULTADO DA BUSCA ==========");
-console.log("EVENTO:", payload.event);
-console.log(
-  "CHECKOUT SESSION:",
-  payload.payment?.checkoutSession,
-);
-console.log(
-  "ASAAS SUBSCRIPTION ID:",
-  payload.payment?.subscription,
-);
-console.log(
-  "ASAAS PAYMENT ID:",
-  payload.payment?.id,
-);
-console.log(
-  "EXTERNAL REFERENCE:",
-  payload.payment?.externalReference,
-);
-console.log("USER ID EXTRAÍDO:", userId);
-console.log(
-  "ASSINATURA LOCAL ENCONTRADA:",
-  localSubscription,
-);
-
 if (localSubscription) {
-  console.log(
-    "Atualizando assinatura existente:",
-    localSubscription.id,
-  );
-
   const { error: updateError } = await supabase
     .from("subscriptions")
     .update(updateData)
@@ -451,10 +394,6 @@ if (localSubscription) {
     throw new Error(updateError.message);
   }
 } else {
-  console.log(
-    "Nenhuma assinatura local encontrada.",
-  );
-
   if (!userId) {
     const message =
       "Evento ignorado: nenhuma assinatura local corresponde ao checkout recebido.";
@@ -502,11 +441,6 @@ if (localSubscription) {
       externalReference ?? null,
   };
 
-  console.log(
-    "Criando nova assinatura:",
-    insertData,
-  );
-
   const { error: insertError } = await supabase
     .from("subscriptions")
     .insert(insertData);
@@ -514,10 +448,6 @@ if (localSubscription) {
   if (insertError) {
     throw new Error(insertError.message);
   }
-
-  console.log(
-    "Nova assinatura criada com sucesso.",
-  );
 }
 
 await supabase
