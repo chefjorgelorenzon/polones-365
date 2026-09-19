@@ -14,6 +14,7 @@ interface StepPlanProps {
   onSelectPlan: (plan: PlanType) => void;
   onFinish: () => void;
   onBack: () => void;
+  isSubmitting?: boolean;
 }
 
 const plans = [
@@ -49,6 +50,7 @@ export default function StepPlan({
   onSelectPlan,
   onFinish,
   onBack,
+  isSubmitting = false,
 }: StepPlanProps) {
   const currentPlan = plans.find((plan) => plan.id === selectedPlan);
 
@@ -180,9 +182,10 @@ export default function StepPlan({
         <button
           type="button"
           onClick={onFinish}
-          className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-red-700 px-7 font-black text-white shadow-lg shadow-red-700/20 transition hover:bg-red-600"
+          disabled={isSubmitting}
+          className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-red-700 px-7 font-black text-white shadow-lg shadow-red-700/20 transition hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-500 disabled:shadow-none"
         >
-          Continuar para pagamento
+          {isSubmitting ? "Preparando..." : "Continuar para pagamento"}
           <ArrowRight size={19} />
         </button>
       </div>

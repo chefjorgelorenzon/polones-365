@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import ProgressBar from "./ProgressBar";
@@ -9,6 +8,7 @@ import StepDailyGoal from "./StepDailyGoal";
 import StepGoal from "./StepGoal";
 import StepLevel from "./StepLevel";
 import StepPlan from "./StepPlan";
+import { finishOnboardingAction } from "./actions";
 
 import type {
   DailyGoal,
@@ -24,7 +24,7 @@ interface OnboardingWizardProps {
 export default function OnboardingWizard({
   selectedPlan,
 }: OnboardingWizardProps) {
-  const router = useRouter();
+  const [isFinishing, startFinishing] = useTransition();
 
   const initialPlan: PlanType =
     selectedPlan === "mensal" ||
@@ -62,7 +62,13 @@ export default function OnboardingWizard({
   }
 
   function handleFinish() {
-    router.push(`/checkout?plano=${plan}`);
+    if (!level || !goal || !dailyGoal) {
+      return;
+    }
+
+    startFinishing(() => {
+      finishOnboardingAction(level, goal, dailyGoal, plan);
+    });
   }
 
   return (
@@ -98,6 +104,7 @@ export default function OnboardingWizard({
               onSelectPlan={setPlan}
               onFinish={handleFinish}
               onBack={handleBack}
+              isSubmitting={isFinishing}
             />
           )}
 

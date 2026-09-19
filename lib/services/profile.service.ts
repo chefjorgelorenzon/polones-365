@@ -109,3 +109,46 @@ export async function updateProfileSettings(
     );
   }
 }
+
+export type CompleteOnboardingInput = {
+  study_goal: string;
+  current_level: string;
+  daily_goal_minutes: number;
+};
+
+export async function completeOnboarding(
+  input: CompleteOnboardingInput
+): Promise<void> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("Usuário não autenticado.");
+  }
+
+  const dailyGoalMinutes = Math.max(
+    5,
+    Math.min(120, input.daily_goal_minutes)
+  );
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      study_goal: input.study_goal,
+      current_level: input.current_level,
+      daily_goal_minutes: dailyGoalMinutes,
+      onboarding_completed: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", user.id);
+
+  if (error) {
+    throw new Error(
+      `Erro ao salvar respostas do onboarding: ${error.message}`
+    );
+  }
+}
