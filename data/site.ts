@@ -25,12 +25,12 @@ export const site = {
   },
 
   contact: {
-    email: "",
-    whatsapp: "",
+    email: "polones.marcio@gmail.com",
+    whatsapp: "555195661369",
   },
 
   social: {
-    instagram: "",
-    youtube: "",
+    instagram: "https://www.instagram.com/marcio.polones/",
+    youtube: "https://www.youtube.com/@marciopolones7080",
   },
 } as const;
