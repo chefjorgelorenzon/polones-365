@@ -3,13 +3,13 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasActiveSubscription } from "@/lib/services/subscription.service";
 
-type PremiumLayoutProps = {
+type AulasLayoutProps = {
   children: React.ReactNode;
 };
 
-export default async function PremiumLayout({
+export default async function AulasLayout({
   children,
-}: PremiumLayoutProps) {
+}: AulasLayoutProps) {
   const supabase = await createClient();
 
   const {

@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { redirect } from "next/navigation";
+
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { createClient } from "@/lib/supabase/server";
@@ -48,17 +50,10 @@ export default async function DashboardLayout({
 
   const {
     data: { user },
-    error,
   } = await supabase.auth.getUser();
 
-  if (error) {
-    throw new Error(
-      `Erro ao buscar usuário autenticado: ${error.message}`
-    );
-  }
-
   if (!user) {
-    throw new Error("Usuário não autenticado.");
+    redirect("/login");
   }
 
   const studentName = getStudentName(
