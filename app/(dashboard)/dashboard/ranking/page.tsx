@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
+import { syncGamificationForUser } from "@/lib/services/gamification.service";
 
 type GamificationRow = {
   user_id: string;
@@ -45,6 +46,13 @@ export default async function RankingPage() {
   if (userError || !user) {
     redirect("/login");
   }
+
+  /*
+   * Garante que o XP do aluno atual reflita seu progresso real,
+   * mesmo que ele nunca tenha concluído uma aula desde que a
+   * gamificação foi implementada.
+   */
+  await syncGamificationForUser(user.id);
 
   /*
    * Buscamos os 100 alunos com mais XP.

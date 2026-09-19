@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 import { markLessonCompleted } from "@/lib/services/progress.service";
+import { syncGamificationAction } from "@/app/(dashboard)/dashboard/aulas/actions";
 
 type Props = {
   lessonId: string;
@@ -43,6 +44,15 @@ export default function CompleteLessonButton({
       await markLessonCompleted(lessonId);
 
       setCompleted(true);
+
+      try {
+        await syncGamificationAction();
+      } catch (gamificationError) {
+        console.error(
+          "Erro ao atualizar XP do ranking:",
+          gamificationError
+        );
+      }
 
       router.refresh();
     } catch (error) {

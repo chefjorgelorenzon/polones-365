@@ -72,7 +72,7 @@ export type DashboardData = {
   recentLessons: DashboardRecentLesson[];
 };
 
-type ProgressRecord = {
+export type ProgressRecord = {
   lesson_id: string;
   started_at: string | null;
   completed_at: string | null;
@@ -162,7 +162,7 @@ function getActivityDate(
   );
 }
 
-function calculateCurrentStreak(
+export function calculateCurrentStreak(
   progressRecords: ProgressRecord[]
 ): number {
   const activityDates = new Set(
